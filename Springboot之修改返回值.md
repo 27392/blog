@@ -38,7 +38,7 @@
 
 ### ResponseBodyAdvice
 
-而在该方法有一行注释`Try even with null return value. ResponseBodyAdvice could get involved.`
+而在`handleReturnValue`方法中有一行注释`Try even with null return value. ResponseBodyAdvice could get involved.`
 
 ```java
 public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
@@ -54,7 +54,7 @@ public void handleReturnValue(@Nullable Object returnValue, MethodParameter retu
 }
 ```
 
-其中提到了`ResponseBodyAdvice`类.通过查阅资料,和自己动手试验发现非常简单就实现了我们的目的
+其中提到了`ResponseBodyAdvice`类.通过查阅资料,和自己动手试验发现使用该类非常简单就实现了我们的目的
 
 ```java
 @ControllerAdvice
@@ -132,3 +132,11 @@ public MappingJackson2HttpMessageConverter DictionaryHttpMessageConverter() {
 最后我使用`HttpMessageConverter`转换器的方法实现转换,在配合使用自定义注解`DictionaryParam`,添加在需要转换的对象属性上,当读取到该注解时才会进行转换
 
 本次说的是修改返回值的几个方法,所以具体的字典转换细节并不会详说,具体的实现(修改返回值)还要看实际情况
+
+[`ResponseBodyAdvice` 参考资料](https://www.cnblogs.com/chenss15060100790/p/9095584.html)
+
+[`@ControllerAdvice` 参考资料](https://blog.csdn.net/zxfryp909012366/article/details/82955259)
+
+[`@RequestBody和@ResponseBody` 参考资料](https://my.oschina.net/u/2377110/blog/1552979)
+
+[`HttpMessageConverter` 参考资料](https://xuanjian1992.top/2019/08/14/Spring-MVC-HttpMessageConverter%E8%BD%AC%E6%8D%A2%E8%AF%B7%E6%B1%82%E5%92%8C%E5%93%8D%E5%BA%94%E6%95%B0%E6%8D%AE%E7%9A%84%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90/)
