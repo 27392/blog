@@ -1,12 +1,14 @@
 # Maven插件 - maven-source-plugin
 
+> maven-source-plugin 插件主要可以用来生成源码包
+
 ## 资料
 
 [maven-source-plugin 官方页面](http://maven.apache.org/plugins/maven-source-plugin/index.html)
 
 [maven 生命周期 官方页面](http://maven.apache.org/ref/3.6.3/maven-core/lifecycles.html)
 
-本次只需要在注意到`default`生命周期即可.**`deploy`是`default`生命周期的最后一个周期**
+本次只需要注意到`default`生命周期即可.**`deploy`是`default`生命周期的最后一个周期**
 
 ## 起因
 
