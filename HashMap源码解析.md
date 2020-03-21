@@ -1,6 +1,6 @@
 # HashMap 
 
-https://segmentfault.com/a/1190000012926722
+![](https://github.com/27392/blog/blob/master/source/HashMap.png)
 
 ## 构造函数
 ```java
