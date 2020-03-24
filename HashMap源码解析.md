@@ -259,13 +259,12 @@ class HashMap {
 
 2. 当树化时(单桶链表超过8),并且桶的大小小于64时
 
-
 ## 参考资料
 
-https://www.jianshu.com/p/f4a09386de22  
+[学习HashMap源码(resize方法)](https://www.jianshu.com/p/f4a09386de22)  
 
-https://juejin.im/post/5dea048b5188251247686f08#heading-12
+[源码解析：HashMap 1.8](https://juejin.im/post/5dea048b5188251247686f08#heading-12)
 
-https://segmentfault.com/a/1190000012926722#item-2
+[HashMap 源码详细分析(JDK1.8)](https://segmentfault.com/a/1190000012926722#item-2)
 
-https://www.bilibili.com/video/av93578466?p=13
+[【黑马程序员】HashMap集合介绍-视频](https://www.bilibili.com/video/av93578466?p=13)
