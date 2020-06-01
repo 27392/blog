@@ -1,5 +1,7 @@
 # Mybatis配置读取之Mapper文件读取
 
+> 此流程去除了多余的代码,只保留与本次主题流程相关的代码
+
 ## 创建 SqlSessionFactory
 
 ```java
@@ -142,46 +144,15 @@ class XMLConfigBuilder extends BaseBuilder {
 class XMLConfigBuilder extends BaseBuilder {
 
   private void mapperElement(XNode parent) throws Exception {
-    if (parent != null) {
-      for (XNode child : parent.getChildren()) {
-        if ("package".equals(child.getName())) {
-          String mapperPackage = child.getStringAttribute("name");
-          configuration.addMappers(mapperPackage);
-        } else {
-          // 获取 resource、url、class 等属性
-          String resource = child.getStringAttribute("resource");
-          String url = child.getStringAttribute("url");
-          String mapperClass = child.getStringAttribute("class");
 
-          // resource 不为空,且其他两者为空,则从指定路径中加载配置
-          if (resource != null && url == null && mapperClass == null) {
-            ErrorContext.instance().resource(resource);
+    // 加载 resource 所指定的 xml 文件
+    InputStream inputStream = Resources.getResourceAsStream(resource);
 
-            // 加载 resource 所指定的 xml 文件
-            InputStream inputStream = Resources.getResourceAsStream(resource);
+    // 1. 创建`XMLMapperBuilder`对象
+    XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
 
-            // 1. 创建`XMLMapperBuilder`对象
-            XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
-
-            // 2. 解析 `Mapper.xml` 文件
-            mapperParser.parse();
-
-          } else if (resource == null && url != null && mapperClass == null) {
-            ErrorContext.instance().resource(url);
-
-            // 从网络上加载 xml 文件, 同样是使用 XMLMapperBuilder 来解析
-            InputStream inputStream = Resources.getUrlAsStream(url);
-            XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
-            mapperParser.parse();
-          } else if (resource == null && url == null && mapperClass != null) {
-            Class<?> mapperInterface = Resources.classForName(mapperClass);
-            configuration.addMapper(mapperInterface);
-          } else {
-            throw new BuilderException("A mapper element may only specify a url, resource or class, but not more than one.");
-          }
-        }
-      }
-    }
+    // 2. 解析 `Mapper.xml` 文件
+    mapperParser.parse();
   }
 }
 ```
@@ -253,21 +224,6 @@ class XMLMapperBuilder extends BaseBuilder {
     
           // 将命名空间设置在`builderAssistant`中
           builderAssistant.setCurrentNamespace(namespace);
-    
-          // 解析 <cache-ref> 节点
-          cacheRefElement(context.evalNode("cache-ref"));
-    
-          // 解析 <cache> 节点
-          cacheElement(context.evalNode("cache"));
-    
-          // 老式风格的参数映射。此元素已被废弃，并可能在将来被移除！
-          parameterMapElement(context.evalNodes("/mapper/parameterMap"));
-    
-          // 解析 <resultMap> 节点
-          resultMapElements(context.evalNodes("/mapper/resultMap"));
-    
-          // 解析 <sql> 节点
-          sqlElement(context.evalNodes("/mapper/sql"));
     
           // 解析 <select>、<insert>、<update>、<delete> 节点
           buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
@@ -394,27 +350,7 @@ class XMLStatementBuilder extends BaseBuilder {
         keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);
   }
 
-  public MappedStatement addMappedStatement(
-      String id,
-      SqlSource sqlSource,
-      StatementType statementType,
-      SqlCommandType sqlCommandType,
-      Integer fetchSize,
-      Integer timeout,
-      String parameterMap,
-      Class<?> parameterType,
-      String resultMap,
-      Class<?> resultType,
-      ResultSetType resultSetType,
-      boolean flushCache,
-      boolean useCache,
-      boolean resultOrdered,
-      KeyGenerator keyGenerator,
-      String keyProperty,
-      String keyColumn,
-      String databaseId,
-      LanguageDriver lang,
-      String resultSets) {
+  public MappedStatement addMappedStatement(String id, SqlSource sqlSource, StatementType statementType, SqlCommandType sqlCommandType, Integer fetchSize, Integer timeout, String parameterMap, Class<?> parameterType, String resultMap, Class<?> resultType, ResultSetType resultSetType, boolean flushCache, boolean useCache, boolean resultOrdered, KeyGenerator keyGenerator, String keyProperty, String keyColumn, String databaseId, LanguageDriver lang, String resultSets) {
 
     if (unresolvedCacheRef) {
       throw new IncompleteElementException("Cache-ref not yet resolved");
@@ -426,23 +362,7 @@ class XMLStatementBuilder extends BaseBuilder {
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
 
     // 构建 MappedStatement 对象
-    MappedStatement.Builder statementBuilder = new MappedStatement.Builder(configuration, id, sqlSource, sqlCommandType)
-        .resource(resource)
-        .fetchSize(fetchSize)
-        .timeout(timeout)
-        .statementType(statementType)
-        .keyGenerator(keyGenerator)
-        .keyProperty(keyProperty)
-        .keyColumn(keyColumn)
-        .databaseId(databaseId)
-        .lang(lang)
-        .resultOrdered(resultOrdered)
-        .resultSets(resultSets)
-        .resultMaps(getStatementResultMaps(resultMap, resultType, id))
-        .resultSetType(resultSetType)
-        .flushCacheRequired(valueOrDefault(flushCache, !isSelect))
-        .useCache(valueOrDefault(useCache, isSelect))
-        .cache(currentCache);
+    MappedStatement.Builder statementBuilder = new MappedStatement.Builder(configuration, id, sqlSource, sqlCommandType).resource(resource).fetchSize(fetchSize).timeout(timeout).statementType(statementType).keyGenerator(keyGenerator).keyProperty(keyProperty).keyColumn(keyColumn).databaseId(databaseId).lang(lang).resultOrdered(resultOrdered).resultSets(resultSets).resultMaps(getStatementResultMaps(resultMap, resultType, id)).resultSetType(resultSetType).flushCacheRequired(valueOrDefault(flushCache, !isSelect)).useCache(valueOrDefault(useCache, isSelect)).cache(currentCache);
 
     ParameterMap statementParameterMap = getStatementParameterMap(parameterMap, parameterType, id);
     if (statementParameterMap != null) {
@@ -481,10 +401,6 @@ class XMLMapperBuilder extends BaseBuilder {
 
         // 判断当前 mapper 是否在 configuration 属性 mapperRegistry 类中的 knownMappers(map) 存在
         if (!configuration.hasMapper(boundType)) {
-
-          // Spring may not know the real resource name so we set a flag
-          // to prevent loading again this resource from the mapper interface
-          // look at MapperAnnotationBuilder#loadXmlResource
           configuration.addLoadedResource("namespace:" + namespace);
 
           // 添加到 configuration 属性 mapperRegistry 类中的 knownMappers(map)
@@ -529,12 +445,6 @@ class MapperRegistry {
         // 将 mapper 类型与 MapperProxyFactory 类型绑定, MapperProxyFactory 类可以为Mapper接口生成动态代理
         knownMappers.put(type, new MapperProxyFactory<>(type));
 
-        // 解析注解
-        // It's important that the type is added before the parser is run
-        // otherwise the binding may automatically be attempted by the
-        // mapper parser. If the type is already known, it won't try.
-        MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
-        parser.parse();
         loadCompleted = true;
       } finally {
         if (!loadCompleted) {
@@ -545,3 +455,4 @@ class MapperRegistry {
   }
 }
 ```
+
